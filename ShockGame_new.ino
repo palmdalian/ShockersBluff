@@ -2,8 +2,9 @@
 #define RELAY_OFF 0
 
 int relayPins[] = { 
-  2, 3, 4, 5, 6, 7, 8, 9 };       // an array of pin numbers to which relays are attached
-int relayCount = 8;              // the number of pins (i.e. the length of the array)
+  2, 3, 4, 5 };       // an array of pin numbers to which relays are attached
+int relayCount = 4;              // the number of pins (i.e. the length of the array)
+boolean pinStatus = 0;
 
 void setup()   /****** SETUP: RUNS ONCE ******/
 {
@@ -18,7 +19,7 @@ void setup()   /****** SETUP: RUNS ONCE ******/
   Serial.begin(9600);
   while (! Serial); // Wait until Serial is ready - Leonardo Arduino
   
-  delay(4000); //Check that all relays are inactive at Reset
+  delay(2000); //Check that all relays are inactive at Reset
   Serial.println("Ready to start");
   
   //---( THEN set pins as outputs )----  
@@ -31,28 +32,29 @@ void setup()   /****** SETUP: RUNS ONCE ******/
 
 void loop() 
 {
-  pinsOff(); //make sure everything is still off
-  if (Serial.available())
-  {
 
-    char ch = Serial.read();  //looking for characters on the serial port from the python script 
+  if (Serial.available())
+  { 
+    char ch = Serial.read();  //looking for characters on the serial port
     int convertInt = ch - '1'; //easy way to convert char to int and get to array numbering
-    pinsOn(convertInt); // function to turn on relays
-    delay(100); //this is how long the shock lasts
+    if (pinStatus == 0 && 0 < convertInt < relayCount){
+      pinStatus = 1;
+      pinsOn(convertInt); // function to turn on relays
+    }
     pinsOff();
   }
 }
 
 
 void pinsOn (int shockNumber){
-for (int thisPin = 0; thisPin < relayCount; thisPin++)  {
-    if (shockNumber == (thisPin))
-    { //do nothing if this is the right number
-    }
-    else {
-      pinMode(relayPins[thisPin], RELAY_ON);
-    }
+  for (int thisPin = 0; thisPin < relayCount; thisPin++)  {
+    Serial.print(thisPin);
+      if (thisPin != shockNumber)
+      { //Open relay on all but the correct pin
+        pinMode(relayPins[thisPin], RELAY_ON);
+      }
   }
+  delay(100); //this is how long the shock lasts
 }
 
 void pinsOff(){
